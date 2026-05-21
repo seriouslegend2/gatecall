@@ -1,0 +1,41 @@
+# Render Blueprint — deploys GateCall as a Node web service.
+#
+# In Render:  New +  →  Blueprint  →  connect this repository.
+# Render reads this file, creates the service, and prompts for the secret
+# environment variables below (sync: false = "ask me, don't store in git").
+
+services:
+  - type: web
+    name: gatecall
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /login
+    autoDeploy: true
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: BOLNA_API_KEY
+        sync: false
+      - key: BOLNA_AGENT_ID
+        sync: false
+      - key: BOLNA_FROM_NUMBER
+        sync: false
+      - key: DEMO_PHONE_1
+        sync: false
+      - key: DEMO_PHONE_2
+        sync: false
+      - key: DEMO_PHONE_3
+        sync: false
+      - key: GATE_USER
+        sync: false
+      - key: GATE_PASSWORD
+        sync: false
