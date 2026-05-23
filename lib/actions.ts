@@ -41,6 +41,15 @@ export function startCalls(
   return request("POST", "/api/calls/start", { flightId, passengerIds });
 }
 
+/** Place a one-off call to any phone number in the context of a flight. */
+export function placeAdhocCall(
+  flightId: string,
+  phone: string,
+  name?: string,
+): Promise<ApiResult> {
+  return request("POST", "/api/calls/adhoc", { flightId, phone, name });
+}
+
 /** Wipe and re-seed the demo cohorts, flights, and passengers. */
 export function resetBoard(): Promise<ApiResult> {
   return request("POST", "/api/reset", {});

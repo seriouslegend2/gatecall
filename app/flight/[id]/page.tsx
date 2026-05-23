@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useBoard } from "@/lib/useBoard";
-import { setFlightCohort, startCalls } from "@/lib/actions";
+import { placeAdhocCall, setFlightCohort, startCalls } from "@/lib/actions";
 import {
   buildRecommendation,
   cohortFor,
@@ -63,6 +63,17 @@ export default function FlightDetailPage() {
     await reload();
   }
 
+  async function adhocCall(phone: string, name: string): Promise<boolean> {
+    const d = await placeAdhocCall(flightId, phone, name);
+    setToast(
+      d.ok
+        ? { kind: "ok", msg: `Dialling ${phone}…` }
+        : { kind: "error", msg: d.error ?? "Call failed" },
+    );
+    await reload();
+    return d.ok;
+  }
+
   let body: React.ReactNode;
   if (!state) {
     body = <CenterNote>Loading flight…</CenterNote>;
@@ -94,6 +105,7 @@ export default function FlightDetailPage() {
           onCallAll={callAll}
           onCallOne={callOne}
           onSetCohort={changeCohort}
+          onAdhocCall={adhocCall}
         />
       );
     }
@@ -124,6 +136,7 @@ function FlightBoard({
   onCallAll,
   onCallOne,
   onSetCohort,
+  onAdhocCall,
 }: {
   flight: Flight;
   passengers: Passenger[];
@@ -134,6 +147,7 @@ function FlightBoard({
   onCallAll: () => void;
   onCallOne: (id: string) => void;
   onSetCohort: (cohortId: string) => void;
+  onAdhocCall: (phone: string, name: string) => Promise<boolean>;
 }) {
   const missing = passengers.filter((p) => p.boarding_status !== "boarded");
   const boarded = passengers.filter((p) => p.boarding_status === "boarded");
@@ -219,6 +233,8 @@ function FlightBoard({
             </button>
           </div>
 
+          <AdhocCallForm onCall={onAdhocCall} />
+
           {missing.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2">
               {missing.map((p) => (
@@ -281,5 +297,67 @@ function Control({ label, value }: { label: string; value: string }) {
     <span className="text-slate-500">
       {label} <span className="font-medium text-slate-300">{value}</span>
     </span>
+  );
+}
+
+function AdhocCallForm({
+  onCall,
+}: {
+  onCall: (phone: string, name: string) => Promise<boolean>;
+}) {
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!phone.trim()) return;
+    setBusy(true);
+    const ok = await onCall(phone.trim(), name.trim());
+    if (ok) {
+      setPhone("");
+      setName("");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4"
+    >
+      <div className="font-semibold text-white">Call another number</div>
+      <p className="mt-0.5 text-xs text-slate-400">
+        Dial any phone in this flight&apos;s context — shows up in call history.
+      </p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-12 sm:items-end">
+        <label className="text-xs sm:col-span-5">
+          <span className="text-slate-500">Phone (E.164)</span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+9198XXXXXXXX"
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
+            required
+          />
+        </label>
+        <label className="text-xs sm:col-span-4">
+          <span className="text-slate-500">Name (optional)</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ad-hoc caller"
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={busy || !phone.trim()}
+          className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-3"
+        >
+          {busy ? "Dialling…" : "Place call"}
+        </button>
+      </div>
+    </form>
   );
 }

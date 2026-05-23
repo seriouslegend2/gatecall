@@ -135,6 +135,28 @@ export async function insertCall(
   return (data as { id: string }).id;
 }
 
+/** Start an ad-hoc call row — no passenger row backing it, just a phone
+ *  number being dialled in the context of a flight. */
+export async function insertAdhocCall(
+  flightId: string,
+  flightNo: string,
+  passengerName: string,
+): Promise<string> {
+  const { data, error } = await getSupabase()
+    .from("calls")
+    .insert({
+      passenger_id: null,
+      flight_id: flightId,
+      passenger_name: passengerName,
+      flight_no: flightNo,
+      call_status: "calling",
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(`Supabase (insert ad-hoc call): ${error.message}`);
+  return (data as { id: string }).id;
+}
+
 export async function updateCall(
   id: string,
   patch: Partial<Call>,
