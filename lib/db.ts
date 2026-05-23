@@ -111,16 +111,22 @@ export async function fetchCalls(): Promise<Call[]> {
   return (data as Call[]) ?? [];
 }
 
-/** Start a call row in the "calling" state; returns its id. */
+/** Start a call row in the "calling" state; returns its id. The passenger
+ *  name and flight number are stored alongside the ids so the call history
+ *  remains readable after a demo reset orphans those ids. */
 export async function insertCall(
   passengerId: string,
   flightId: string,
+  passengerName: string,
+  flightNo: string,
 ): Promise<string> {
   const { data, error } = await getSupabase()
     .from("calls")
     .insert({
       passenger_id: passengerId,
       flight_id: flightId,
+      passenger_name: passengerName,
+      flight_no: flightNo,
       call_status: "calling",
     })
     .select("id")
@@ -154,11 +160,14 @@ export async function findCallByExecution(
 
 // --- demo seed -----------------------------------------------------------
 
-/** Wipe and re-seed the demo cohorts, flights, and passengers. */
+/** Wipe and re-seed the demo cohorts, flights, and passengers. Calls are
+ *  intentionally preserved — they form a permanent call history that
+ *  survives every reset. */
 export async function resetDemo(): Promise<void> {
   const sb = getSupabase();
-  // Deleting passengers cascades to calls. Flights reference cohorts, so
-  // delete flights before cohorts. `id <> ''` matches every row.
+  // Calls no longer reference passengers/flights with cascading FKs, so we
+  // can wipe the live tables without taking the call history with them.
+  // Flights → cohorts FK still exists, so delete flights before cohorts.
   await sb.from("passengers").delete().neq("id", "");
   await sb.from("flights").delete().neq("id", "");
   await sb.from("cohorts").delete().neq("id", "");

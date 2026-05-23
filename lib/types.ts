@@ -64,11 +64,16 @@ export interface Passenger {
 }
 
 /** One outbound voice call. A passenger may have several (re-calls); the most
- *  recent is their current call state. */
+ *  recent is their current call state. Calls survive demo resets — once the
+ *  live passenger or flight row is gone, `passenger_id`/`flight_id` go null
+ *  but the denormalised `passenger_name` and `flight_no` keep the row
+ *  readable in the call history. */
 export interface Call {
   id: string;
-  passenger_id: string;
-  flight_id: string;
+  passenger_id: string | null;
+  flight_id: string | null;
+  passenger_name: string | null;
+  flight_no: string | null;
   bolna_execution_id: string | null;
   call_status: CallStatus;
   location_status: LocationStatus | null;

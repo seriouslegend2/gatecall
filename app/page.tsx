@@ -118,6 +118,12 @@ export default function OverviewPage() {
             </div>
             <div className="flex items-center gap-2">
               <AutoToggle on={automation} onChange={setAutomation} />
+              <Link
+                href="/calls"
+                className="rounded-lg border border-slate-700 px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-slate-800"
+              >
+                Past calls
+              </Link>
               <button
                 type="button"
                 onClick={onReset}

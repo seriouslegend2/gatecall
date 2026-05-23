@@ -38,6 +38,9 @@ export default function TopBar({ realtime }: { realtime?: boolean }) {
           <Link href="/cohorts" className={navCls(pathname === "/cohorts")}>
             Cohorts
           </Link>
+          <Link href="/calls" className={navCls(pathname === "/calls")}>
+            Calls
+          </Link>
         </nav>
       </div>
 

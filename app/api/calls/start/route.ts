@@ -81,7 +81,12 @@ export async function POST(req: NextRequest) {
   // Fire all calls in parallel — the agent reaches multiple passengers at once.
   const results = await Promise.all(
     targets.map(async (p) => {
-      const callId = await insertCall(p.id, flight.id);
+      const callId = await insertCall(
+        p.id,
+        flight.id,
+        p.name,
+        flight.flight_no,
+      );
 
       const r = await startBolnaCall({
         recipientPhone: p.phone,
